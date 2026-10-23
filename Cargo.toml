@@ -5,6 +5,8 @@ edition = "2021"
 authors = ["jjuker"]
 description = "A fast command-line tool to remove node_modules directories"
 license = "MIT"
+repository = "https://github.com/jjuker/rnm"
+keywords = ["node_modules", "cleanup", "cli", "rust"]
 
 [dependencies]
 clap = { version = "4.4", features = ["derive"] }
