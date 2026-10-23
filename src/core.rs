@@ -23,7 +23,9 @@ fn scan_node_modules(dir: &Path, config: &ScanConfig, results: &mut Vec<PathBuf>
         }
 
         // 无权限等错误直接跳过该目录，不中断整个扫描
-        let Ok(entries) = std::fs::read_dir(dir) else { return };
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
         for entry in entries.flatten() {
             // file_type() 复用 read_dir 已有信息，不额外 stat；
             // symlink/junction 的 is_dir() 为 false，天然不跟随，避免重复扫描和死循环
@@ -59,7 +61,11 @@ pub fn run(args: Args) -> Result<()> {
     let scan_start = Instant::now();
 
     let config = ScanConfig {
-        max_depth: if args.depth > 0 { Some(args.depth) } else { None },
+        max_depth: if args.depth > 0 {
+            Some(args.depth)
+        } else {
+            None
+        },
     };
 
     let mut paths: Vec<PathBuf> = Vec::new();
@@ -95,14 +101,23 @@ pub fn run(args: Args) -> Result<()> {
                 println!("     大小: {}", format_size(*size));
             }
             println!("────────────────────────────────────");
-            println!("总计: {} 个目录, {}", results.len(), format_size(total_size));
-            println!("扫描耗时: {:.3}s (速度: {:.2} MB/s)",
+            println!(
+                "总计: {} 个目录, {}",
+                results.len(),
+                format_size(total_size)
+            );
+            println!(
+                "扫描耗时: {:.3}s (速度: {:.2} MB/s)",
                 scan_time.as_secs_f64(),
                 total_size as f64 / scan_time.as_secs_f64() / 1024.0 / 1024.0
             );
             println!("\n[TEST MODE] 未执行删除");
         } else {
-            println!("\n找到 {} 个 node_modules 目录 ({}):", results.len(), format_size(total_size));
+            println!(
+                "\n找到 {} 个 node_modules 目录 ({}):",
+                results.len(),
+                format_size(total_size)
+            );
             for (i, (path, size)) in results.iter().enumerate() {
                 println!("  {}. {} ({})", i + 1, path.display(), format_size(*size));
             }
@@ -139,9 +154,11 @@ pub fn run(args: Args) -> Result<()> {
             .try_for_each(|(path, _)| remove_dir_all_fast(path))?;
     } else {
         let pb = ProgressBar::new(results.len() as u64);
-        pb.set_style(ProgressStyle::default_spinner()
-            .template("{spinner} 删除中 {pos}/{len}")
-            .unwrap());
+        pb.set_style(
+            ProgressStyle::default_spinner()
+                .template("{spinner} 删除中 {pos}/{len}")
+                .unwrap(),
+        );
         pb.enable_steady_tick(Duration::from_millis(100));
 
         results.par_iter().try_for_each(|(path, _)| -> Result<()> {
@@ -152,7 +169,8 @@ pub fn run(args: Args) -> Result<()> {
         pb.finish();
 
         let delete_time = delete_start.elapsed();
-        println!("删除耗时: {:.2}s (速度: {:.2} MB/s)",
+        println!(
+            "删除耗时: {:.2}s (速度: {:.2} MB/s)",
             delete_time.as_secs_f64(),
             total_size as f64 / delete_time.as_secs_f64() / 1024.0 / 1024.0
         );

@@ -30,9 +30,7 @@ pub fn remove_dir_all_fast(path: &Path) -> Result<()> {
         .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false))
         .map(|e| e.path())
         .collect();
-    subdirs
-        .par_iter()
-        .try_for_each(std::fs::remove_dir_all)?;
+    subdirs.par_iter().try_for_each(std::fs::remove_dir_all)?;
 
     // 清理顶层剩余的文件、链接和空目录本身
     std::fs::remove_dir_all(&target)?;
